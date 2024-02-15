@@ -3,7 +3,6 @@ package com.grandapp.controller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -78,12 +77,12 @@ public class AppointmentController {
 	@GetMapping("/BookingDate")
 	private ResponseEntity<GeneralResponse<List<AppointmentModel>>> getAppointmentsByDate(
 			@RequestParam(required = false) String timeStart, @RequestParam(required = false) Long barberId,
-			@RequestParam(required = false) Long clientId) {
+			@RequestParam(required = false) String phone) {
 		GeneralResponse<List<AppointmentModel>> response = new GeneralResponse<>();
 		HttpStatus status = null;
 
 		try {
-			List<AppointmentModel> data = appointmentService.getAppointmentsByDate(timeStart, barberId, clientId);
+			List<AppointmentModel> data = appointmentService.getAppointmentsByDate(timeStart, barberId, phone);
 			response.setSuccess(true);
 			response.setData(data);
 			status = HttpStatus.OK;
@@ -110,7 +109,7 @@ public class AppointmentController {
 	 * @return <AppointmentModel>
 	 *
 	 */
-	@PostMapping()
+	@PostMapping
 	private ResponseEntity<GeneralResponse<AppointmentModel>> save(@RequestBody AppointmentRequestDto data) {
 		GeneralResponse<AppointmentModel> response = new GeneralResponse<>();
 		HttpStatus status = null;
@@ -134,7 +133,7 @@ public class AppointmentController {
 	}
 
 	/**
-	 * Metodo para Editar appointmente
+	 * Metodo para Editar appointment
 	 * 
 	 * @param AppointmentModel appointment - Es el objeto appointmente
 	 * @return <AppointmentModel>

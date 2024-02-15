@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>BarberController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">bk-lbda</a> &gt; <a href="index.source.html" class="el_package">com.grandapp.controller</a> &gt; <span class="el_source">BarberController.java</span></div><h1>BarberController.java</h1><pre class="source lang-java linenums">package com.grandapp.controller;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.grandapp.exceptions.OperationNotAllowedException;
+import com.grandapp.model.BarberModel;
+import com.grandapp.response.GeneralResponse;
+import com.grandapp.service.BarberService;
+
+import lombok.extern.slf4j.Slf4j;
+
+@CrossOrigin(origins = &quot;*&quot;)
+@RestController
+@RequestMapping(&quot;/barbers&quot;)
+<span class="fc" id="L28">@Slf4j</span>
+<span class="fc" id="L29">public class BarberController {</span>
+
+	@Autowired
+	private BarberService barberService;
+
+	/**
+	 * Metodo para crear Barbero 
+	 * 
+	 * @param BarberModel client - Es el objeto barber
+	 * @return &lt;BarberModel&gt;
+	 */
+	@PostMapping
+	private ResponseEntity&lt;GeneralResponse&lt;BarberModel&gt;&gt; save(@RequestBody BarberModel client) {
+<span class="nc" id="L42">		GeneralResponse&lt;BarberModel&gt; response = new GeneralResponse&lt;&gt;();</span>
+<span class="nc" id="L43">		HttpStatus status = null;</span>
+
+		try {
+
+<span class="nc" id="L47">			BarberModel cliente = barberService.save(client);</span>
+<span class="nc" id="L48">			response.setMessage(&quot;Registro creado!&quot;);</span>
+<span class="nc" id="L49">			response.setSuccess(true);</span>
+<span class="nc" id="L50">			response.setData(cliente);</span>
+<span class="nc" id="L51">			status = HttpStatus.OK;</span>
+<span class="nc" id="L52">			log.info(&quot;save Ejecutado con Éxito &quot; + cliente);</span>
+
+<span class="nc" id="L54">		} catch (Exception e) {</span>
+
+<span class="nc" id="L56">			response.setMessage(e.getMessage());</span>
+<span class="nc" id="L57">			response.setSuccess(false);</span>
+<span class="nc" id="L58">			status = HttpStatus.INTERNAL_SERVER_ERROR;</span>
+<span class="nc" id="L59">			log.error(&quot;error generado &quot; + e.getMessage());</span>
+<span class="nc" id="L60">		}</span>
+<span class="nc" id="L61">		return new ResponseEntity&lt;&gt;(response, status);</span>
+	}
+
+	
+	/**
+	 * Este método se encarga de traer un cliente buscado por ID
+	 * 
+	 * @param id int Es el identificador del registro para cada usuario
+	 * @return BarberModel
+	 * @param &lt;T&gt;
+	 * @return
+	 */
+	@GetMapping(&quot;/{id}&quot;)
+	private ResponseEntity&lt;GeneralResponse&lt;BarberModel&gt;&gt; findById(@PathVariable(&quot;id&quot;) Long id) {
+<span class="nc" id="L75">		GeneralResponse&lt;BarberModel&gt; response = new GeneralResponse&lt;&gt;();</span>
+<span class="nc" id="L76">		HttpStatus status = null;</span>
+
+		try {
+<span class="nc" id="L79">			BarberModel data = barberService.findById(id).get();</span>
+<span class="nc" id="L80">			response.setSuccess(true);</span>
+<span class="nc" id="L81">			response.setData(data);</span>
+<span class="nc" id="L82">			status = HttpStatus.OK;</span>
+<span class="nc bnc" id="L83" title="All 2 branches missed.">			if (data == null) {</span>
+<span class="nc" id="L84">				response.setMessage(&quot;El Profesional &quot; + id + &quot; no existe&quot;);</span>
+<span class="nc" id="L85">				log.info(&quot;El Staff &quot; + id + &quot; no Existe!&quot;);</span>
+
+			}
+<span class="nc" id="L88">			log.info(&quot;findByid Ejecutado con Éxito &gt;&gt;&quot; + id);</span>
+
+<span class="nc" id="L90">		} catch (Exception e) {</span>
+<span class="nc" id="L91">			response.setMessage(e.getMessage());</span>
+<span class="nc" id="L92">			response.setSuccess(false);</span>
+<span class="nc" id="L93">			status = HttpStatus.INTERNAL_SERVER_ERROR;</span>
+<span class="nc" id="L94">			log.error(&quot;findByid Fallido &gt;&gt;&quot; + e);</span>
+<span class="nc" id="L95">		}</span>
+
+<span class="nc" id="L97">		return new ResponseEntity&lt;&gt;(response, status);</span>
+	}
+
+	/**
+	 * Este método se encarga de traer la lista de barberos
+	 * 
+	 * @return List&lt;BarberModel&gt;
+	 */
+	@GetMapping
+	private ResponseEntity&lt;GeneralResponse&lt;List&lt;BarberModel&gt;&gt;&gt; findAll() {
+<span class="nc" id="L107">		GeneralResponse&lt;List&lt;BarberModel&gt;&gt; response = new GeneralResponse&lt;&gt;();</span>
+<span class="nc" id="L108">		HttpStatus status = null;</span>
+		try {
+<span class="nc" id="L110">			List&lt;BarberModel&gt; data = barberService.findAll();</span>
+<span class="nc" id="L111">			response.setSuccess(true);</span>
+<span class="nc" id="L112">			response.setData(data);</span>
+<span class="nc" id="L113">			status = HttpStatus.OK;</span>
+<span class="nc" id="L114">			log.info(&quot;findAll Ejecutado con Éxito&quot;);</span>
+<span class="nc" id="L115">		} catch (Exception e) {</span>
+<span class="nc" id="L116">			response.setMessage(&quot;Error al obtener la lista de barberos: &quot; + e.getMessage());</span>
+<span class="nc" id="L117">			response.setSuccess(false);</span>
+<span class="nc" id="L118">			status = HttpStatus.INTERNAL_SERVER_ERROR;</span>
+<span class="nc" id="L119">			log.error(&quot;findAll Fallido&quot;, e);</span>
+<span class="nc" id="L120">		}</span>
+
+<span class="nc" id="L122">		return new ResponseEntity&lt;&gt;(response, status);</span>
+	}
+
+	//metodo para eliminar registro barbero
+	
+		@DeleteMapping(&quot;/{id}&quot;)
+		private ResponseEntity&lt;GeneralResponse&lt;BarberModel&gt;&gt; delete(@PathVariable(&quot;id&quot;) Long id) {
+
+<span class="nc" id="L130">			GeneralResponse&lt;BarberModel&gt; response = new GeneralResponse&lt;&gt;();</span>
+<span class="nc" id="L131">			HttpStatus status = null;</span>
+			try {
+<span class="nc" id="L133">				BarberModel data = barberService.deleteById(id).get();</span>
+<span class="nc" id="L134">				response.setMessage(&quot;Barbero eliminado correctamente&quot;);</span>
+<span class="nc" id="L135">				response.setData(data);</span>
+<span class="nc" id="L136">				response.setSuccess(true);</span>
+<span class="nc" id="L137">				status = HttpStatus.OK;</span>
+<span class="nc" id="L138">				log.info(&quot;Delete barber executed successfully&quot;);</span>
+
+<span class="nc" id="L140">			} catch (OperationNotAllowedException e) {</span>
+<span class="nc" id="L141">				response.setMessage(e.getMessage());</span>
+<span class="nc" id="L142">				response.setSuccess(false);</span>
+<span class="nc" id="L143">				status = HttpStatus.NOT_FOUND;</span>
+<span class="nc" id="L144">			} catch (Exception e) {</span>
+<span class="nc" id="L145">				log.info(&quot;Error delete client&quot; + e);</span>
+<span class="nc" id="L146">				response.setMessage(e.getMessage());</span>
+<span class="nc" id="L147">				response.setSuccess(false);</span>
+<span class="nc" id="L148">				status = HttpStatus.INTERNAL_SERVER_ERROR;</span>
+<span class="nc" id="L149">				log.error(&quot;error generado &quot; + e.getMessage());</span>
+<span class="nc" id="L150">			}</span>
+<span class="nc" id="L151">			return new ResponseEntity&lt;&gt;(response, status);</span>
+
+		}
+	
+	
+	// metodo para validar si el servicio esta arriba
+	@GetMapping(&quot;/test&quot;)
+	private String saludar() {
+<span class="nc" id="L159">		log.info(&quot;estamos en el test del cotrolador de Barbers&quot;);</span>
+<span class="nc" id="L160">		return &quot;Hello! this service is Run&quot;;</span>
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

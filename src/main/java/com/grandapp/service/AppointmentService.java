@@ -24,9 +24,11 @@ public interface AppointmentService {
 
 	AppointmentResponseDto getAppointmentsByBarberId(AppointmentRequestDto appointment) throws Exception;
 	
-	List<AppointmentModel> getAppointmentsByDate(String timeStart, Long barberId, Long clientId) throws Exception;
+	List<AppointmentModel> getAppointmentsByDate(String timeStart, Long barberId, String phone) throws Exception;
 
 	void deleteById(Long id);
+
+	
 	
 
 	

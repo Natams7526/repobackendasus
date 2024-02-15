@@ -70,7 +70,6 @@ public class ClientController {
 	 * 
 	 * @param id int Es el identificador del registro para cada usuario
 	 * @return Clientmodel
-	 * @author Joan Lemus
 	 * @param <T>
 	 * @return
 	 */
@@ -139,7 +138,7 @@ public class ClientController {
 	 * 
 	 * @param ClientModel client - Es el objeto cliente
 	 * @return <Clientmodel>
-	 * @author Joan Lemus
+	 
 	 */
 	@PostMapping
 	private ResponseEntity<GeneralResponse<ClientModel>> save(@RequestBody ClientModel client) {
@@ -170,7 +169,7 @@ public class ClientController {
 	 * 
 	 * @param Long id - ClientModel client - Es el objeto cliente
 	 * @return <Clientmodel>
-	 * @author Joan Lemus
+	 
 	 */
 	@PutMapping("/{id}")
 	private ResponseEntity<GeneralResponse<ClientModel>> update(@PathVariable("id") Long id,

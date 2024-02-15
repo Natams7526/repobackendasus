@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>GeneralResponse.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">bk-lbda</a> &gt; <a href="index.source.html" class="el_package">com.grandapp.response</a> &gt; <span class="el_source">GeneralResponse.java</span></div><h1>GeneralResponse.java</h1><pre class="source lang-java linenums">package com.grandapp.response;
+
+import java.io.Serializable;
+
+
+public class GeneralResponse&lt;T&gt; implements Serializable {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 6772649470375030808L;
+
+	/**
+	 * The result data to response
+	 */
+	private T data;
+
+	/**
+	 * The result of operation
+	 */
+	private boolean success;
+
+	/**
+	 * The result message
+	 */
+	private String message;
+	
+	/**
+	 * Informacion cuando se presenta error
+	 */
+	private ApiError apiError;
+	
+	/**
+	 * Constructor
+	 */
+<span class="nc" id="L35">	public GeneralResponse() {</span>
+<span class="nc" id="L36">	}</span>
+	
+	/**
+	 * Constructor
+	 */
+<span class="nc" id="L41">	public GeneralResponse(boolean success, String message) {</span>
+<span class="nc" id="L42">		this.success = success;</span>
+<span class="nc" id="L43">		this.message = message;</span>
+<span class="nc" id="L44">	}</span>
+	
+	/**
+	 * Constructor
+	 */
+<span class="nc" id="L49">	public GeneralResponse(boolean success, String message, T data) {</span>
+<span class="nc" id="L50">		this.success = success;</span>
+<span class="nc" id="L51">		this.message = message;</span>
+<span class="nc" id="L52">		this.data = data;</span>
+<span class="nc" id="L53">	}</span>
+
+	/**
+	 * Gets the data
+	 * 
+	 * @return the data value
+	 */
+	public T getData() {
+<span class="nc" id="L61">		return data;</span>
+	}
+
+	/**
+	 * Gets the success
+	 * 
+	 * @return the success value
+	 */
+	public boolean isSuccess() {
+<span class="nc" id="L70">		return success;</span>
+	}
+
+	/**
+	 * Gets the message
+	 * 
+	 * @return the message value
+	 */
+	public String getMessage() {
+<span class="nc" id="L79">		return message;</span>
+	}
+
+	/**
+	 * Sets the data value
+	 * 
+	 * @param data
+	 *            the data to set
+	 */
+	public void setData(T data) {
+<span class="nc" id="L89">		this.data = data;</span>
+<span class="nc" id="L90">	}</span>
+
+	/**
+	 * Sets the success value
+	 * 
+	 * @param success
+	 *            the success to set
+	 */
+	public void setSuccess(boolean success) {
+<span class="nc" id="L99">		this.success = success;</span>
+<span class="nc" id="L100">	}</span>
+
+	/**
+	 * Sets the message value
+	 * 
+	 * @param message
+	 *            the message to set
+	 */
+	public void setMessage(String message) {
+<span class="nc" id="L109">		this.message = message;</span>
+<span class="nc" id="L110">	}</span>
+
+	public ApiError getApiError() {
+<span class="nc" id="L113">		return apiError;</span>
+	}
+	
+	public void setApiError(ApiError apiError) {
+<span class="nc" id="L117">		this.apiError = apiError;</span>
+<span class="nc" id="L118">	}</span>
+	
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ClientController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">bk-lbda</a> &gt; <a href="index.source.html" class="el_package">com.grandapp.controller</a> &gt; <span class="el_source">ClientController.java</span></div><h1>ClientController.java</h1><pre class="source lang-java linenums">package com.grandapp.controller;
+
+import org.springframework.beans.factory.annotation.Autowired;
+
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.grandapp.exceptions.OperationNotAllowedException;
+import com.grandapp.model.ClientModel;
+import com.grandapp.response.GeneralResponse;
+import com.grandapp.service.ClientService;
+
+import io.swagger.annotations.*;
+import lombok.extern.slf4j.Slf4j;
+
+@CrossOrigin(origins = &quot;*&quot;)
+@RestController
+@RequestMapping(&quot;/clients&quot;)
+<span class="fc" id="L33">@Slf4j</span>
+<span class="fc" id="L34">public class ClientController {</span>
+
+	@Autowired
+	private ClientService clientService;
+
+	@ApiOperation(value = &quot;Listar Clientes&quot;, notes = &quot;listamos los clientes de forma paginada&quot;)
+	@ApiResponses(value = {
+			@ApiResponse(code = 200, message = &quot;OK. El recurso se obtiene correctamente&quot;, response = ClientModel.class),
+			@ApiResponse(code = 400, message = &quot;Bad Request.Esta vez cambiamos el tipo de dato de la respuesta (String)&quot;, response = String.class),
+			@ApiResponse(code = 500, message = &quot;Error inesperado del sistema&quot;) })
+	@GetMapping
+	private ResponseEntity&lt;GeneralResponse&lt;Page&lt;ClientModel&gt;&gt;&gt; findAll(@RequestParam(defaultValue = &quot;0&quot;) int page,
+			@RequestParam(defaultValue = &quot;10&quot;) int size, @RequestParam(defaultValue = &quot;id&quot;) String[] sort) {
+<span class="nc" id="L47">		GeneralResponse&lt;Page&lt;ClientModel&gt;&gt; response = new GeneralResponse&lt;&gt;();</span>
+<span class="nc" id="L48">		HttpStatus status = null;</span>
+<span class="nc" id="L49">		Page&lt;ClientModel&gt; data = null;</span>
+<span class="nc" id="L50">		Pageable pageable = PageRequest.of(page, size, Sort.by(sort).ascending());</span>
+		try {
+<span class="nc" id="L52">			data = clientService.findAll(pageable);</span>
+<span class="nc" id="L53">			response.setSuccess(true);</span>
+<span class="nc" id="L54">			response.setData(data);</span>
+<span class="nc" id="L55">			status = HttpStatus.OK;</span>
+<span class="nc" id="L56">			log.info(&quot;findAll Ejecutado con Exito&quot;);</span>
+
+<span class="nc" id="L58">		} catch (Exception e) {</span>
+<span class="nc" id="L59">			response.setMessage(e.getMessage());</span>
+<span class="nc" id="L60">			response.setSuccess(false);</span>
+<span class="nc" id="L61">			status = HttpStatus.INTERNAL_SERVER_ERROR;</span>
+<span class="nc" id="L62">			log.warn(&quot;findAll Fallido &gt;&gt;&quot; + e);</span>
+<span class="nc" id="L63">		}</span>
+
+<span class="nc" id="L65">		return new ResponseEntity&lt;&gt;(response, status);</span>
+	}
+
+	/**
+	 * Este método se encarga de traer un cliente buscado por ID
+	 * 
+	 * @param id int Es el identificador del registro para cada usuario
+	 * @return Clientmodel
+	 * @param &lt;T&gt;
+	 * @return
+	 */
+	@GetMapping(&quot;/{id}&quot;)
+	private ResponseEntity&lt;GeneralResponse&lt;ClientModel&gt;&gt; findById(@PathVariable(&quot;id&quot;) Long id) {
+<span class="nc" id="L78">		GeneralResponse&lt;ClientModel&gt; response = new GeneralResponse&lt;&gt;();</span>
+<span class="nc" id="L79">		HttpStatus status = null;</span>
+
+		try {
+<span class="nc" id="L82">			ClientModel data = clientService.findById(id).get();</span>
+<span class="nc" id="L83">			response.setSuccess(true);</span>
+<span class="nc" id="L84">			response.setData(data);</span>
+<span class="nc" id="L85">			status = HttpStatus.OK;</span>
+<span class="nc bnc" id="L86" title="All 2 branches missed.">			if (data == null) {</span>
+<span class="nc" id="L87">				response.setMessage(&quot;El cliente &quot; + id + &quot; no existe&quot;);</span>
+<span class="nc" id="L88">				log.info(&quot;El Cliente &quot; + id + &quot; no Existe!&quot;);</span>
+
+			}
+<span class="nc" id="L91">			log.info(&quot;findByid Ejecutado con Éxito &gt;&gt;&quot; + id);</span>
+
+<span class="nc" id="L93">		} catch (Exception e) {</span>
+<span class="nc" id="L94">			response.setMessage(e.getMessage());</span>
+<span class="nc" id="L95">			response.setSuccess(false);</span>
+<span class="nc" id="L96">			status = HttpStatus.INTERNAL_SERVER_ERROR;</span>
+<span class="nc" id="L97">			log.error(&quot;findByid Fallido &gt;&gt;&quot; + e);</span>
+<span class="nc" id="L98">		}</span>
+
+<span class="nc" id="L100">		return new ResponseEntity&lt;&gt;(response, status);</span>
+	}
+	
+	/**
+	 * Este método se encarga de traer un cliente buscado por Phone
+	 * 
+	 * @param phone String Es el parametro que pertenece al cliente y debe ser unico.
+	 * @return Clientmodel
+	 */
+	@GetMapping(&quot;/find-client-x-Phone/{phone}&quot;)
+	private ResponseEntity&lt;GeneralResponse&lt;ClientModel&gt;&gt; findByPhone(@PathVariable(&quot;phone&quot;) String phone) {
+<span class="nc" id="L111">		GeneralResponse&lt;ClientModel&gt; response = new GeneralResponse&lt;&gt;();</span>
+<span class="nc" id="L112">		HttpStatus status = null;</span>
+
+		try {
+<span class="nc" id="L115">			ClientModel data = clientService.existsByPhone(phone);</span>
+<span class="nc" id="L116">			response.setSuccess(true);</span>
+<span class="nc" id="L117">			response.setData(data);</span>
+<span class="nc" id="L118">			status = HttpStatus.OK;</span>
+<span class="nc bnc" id="L119" title="All 2 branches missed.">			if (data == null) {</span>
+<span class="nc" id="L120">				response.setMessage(&quot;El cliente con telefono&quot; + phone + &quot; no existe&quot;);</span>
+<span class="nc" id="L121">				log.info(&quot;El Cliente con telefono: &quot; + phone + &quot; no Existe!&quot;);</span>
+
+			}
+<span class="nc" id="L124">			log.info(&quot;findByPhone Ejecutado con Éxito &gt;&gt;&quot; + phone);</span>
+
+<span class="nc" id="L126">		} catch (Exception e) {</span>
+<span class="nc" id="L127">			response.setMessage(e.getMessage());</span>
+<span class="nc" id="L128">			response.setSuccess(false);</span>
+<span class="nc" id="L129">			status = HttpStatus.INTERNAL_SERVER_ERROR;</span>
+<span class="nc" id="L130">			log.error(&quot;findByPhone Fallido &gt;&gt;&quot; + e);</span>
+<span class="nc" id="L131">		}</span>
+
+<span class="nc" id="L133">		return new ResponseEntity&lt;&gt;(response, status);</span>
+	}
+
+	/**
+	 * Metodo para crear Cliente
+	 * 
+	 * @param ClientModel client - Es el objeto cliente
+	 * @return &lt;Clientmodel&gt;
+	 
+	 */
+	@PostMapping
+	private ResponseEntity&lt;GeneralResponse&lt;ClientModel&gt;&gt; save(@RequestBody ClientModel client) {
+<span class="nc" id="L145">		GeneralResponse&lt;ClientModel&gt; response = new GeneralResponse&lt;&gt;();</span>
+<span class="nc" id="L146">		HttpStatus status = null;</span>
+
+		try {
+
+<span class="nc" id="L150">			ClientModel cliente = clientService.save(client);</span>
+<span class="nc" id="L151">			response.setMessage(&quot;Cliente creado!&quot;);</span>
+<span class="nc" id="L152">			response.setSuccess(true);</span>
+<span class="nc" id="L153">			response.setData(cliente);</span>
+<span class="nc" id="L154">			status = HttpStatus.OK;</span>
+<span class="nc" id="L155">			log.info(&quot;save Ejecutado con Éxito &quot; + cliente);</span>
+
+<span class="nc" id="L157">		} catch (Exception e) {</span>
+
+<span class="nc" id="L159">			response.setMessage(e.getMessage());</span>
+<span class="nc" id="L160">			response.setSuccess(false);</span>
+<span class="nc" id="L161">			status = HttpStatus.INTERNAL_SERVER_ERROR;</span>
+<span class="nc" id="L162">			log.error(&quot;error generado &quot; + e.getMessage());</span>
+<span class="nc" id="L163">		}</span>
+<span class="nc" id="L164">		return new ResponseEntity&lt;&gt;(response, status);</span>
+	}
+
+	/**
+	 * Metodo para Actualizar Cliente
+	 * 
+	 * @param Long id - ClientModel client - Es el objeto cliente
+	 * @return &lt;Clientmodel&gt;
+	 
+	 */
+	@PutMapping(&quot;/{id}&quot;)
+	private ResponseEntity&lt;GeneralResponse&lt;ClientModel&gt;&gt; update(@PathVariable(&quot;id&quot;) Long id,
+			@RequestBody ClientModel client) {
+<span class="nc" id="L177">		GeneralResponse&lt;ClientModel&gt; response = new GeneralResponse&lt;&gt;();</span>
+<span class="nc" id="L178">		HttpStatus status = null;</span>
+		try {
+<span class="nc" id="L180">			ClientModel clientUpdated = clientService.update(id, client);</span>
+<span class="nc" id="L181">			response.setMessage(&quot;Cliente actualizado!&quot;);</span>
+<span class="nc" id="L182">			response.setSuccess(true);</span>
+<span class="nc" id="L183">			response.setData(clientUpdated);</span>
+<span class="nc" id="L184">			status = HttpStatus.OK;</span>
+<span class="nc" id="L185">			log.info(&quot;Update Ejecutado con Éxito &quot; + clientUpdated);</span>
+
+<span class="nc" id="L187">		} catch (Exception e) {</span>
+<span class="nc" id="L188">			response.setMessage(e.getMessage());</span>
+<span class="nc" id="L189">			response.setSuccess(false);</span>
+<span class="nc" id="L190">			status = HttpStatus.NOT_FOUND;</span>
+<span class="nc" id="L191">			log.error(&quot;error generado &quot; + e.getMessage());</span>
+<span class="nc" id="L192">		}</span>
+
+<span class="nc" id="L194">		return new ResponseEntity&lt;&gt;(response, status);</span>
+	}
+
+	@DeleteMapping(&quot;/{id}&quot;)
+	private ResponseEntity&lt;GeneralResponse&lt;Boolean&gt;&gt; delete(@PathVariable(&quot;id&quot;) Long id) {
+
+<span class="nc" id="L200">		GeneralResponse&lt;Boolean&gt; response = new GeneralResponse&lt;&gt;();</span>
+<span class="nc" id="L201">		HttpStatus status = null;</span>
+		try {
+<span class="nc" id="L203">			clientService.deleteById(id);</span>
+<span class="nc" id="L204">			response.setMessage(&quot;Cliente eliminado correctamente&quot;);</span>
+<span class="nc" id="L205">			response.setSuccess(true);</span>
+<span class="nc" id="L206">			status = HttpStatus.OK;</span>
+<span class="nc" id="L207">			log.info(&quot;Delete client ejecuted successfully&quot;);</span>
+
+<span class="nc" id="L209">		} catch (OperationNotAllowedException e) {</span>
+<span class="nc" id="L210">			response.setMessage(e.getMessage());</span>
+<span class="nc" id="L211">			response.setSuccess(false);</span>
+<span class="nc" id="L212">			status = HttpStatus.NOT_FOUND;</span>
+<span class="nc" id="L213">		} catch (Exception e) {</span>
+<span class="nc" id="L214">			log.info(&quot;Error delete client&quot; + e);</span>
+<span class="nc" id="L215">			response.setMessage(e.getMessage());</span>
+<span class="nc" id="L216">			response.setSuccess(false);</span>
+<span class="nc" id="L217">			status = HttpStatus.INTERNAL_SERVER_ERROR;</span>
+<span class="nc" id="L218">			log.error(&quot;error generado &quot; + e.getMessage());</span>
+<span class="nc" id="L219">		}</span>
+<span class="nc" id="L220">		return new ResponseEntity&lt;&gt;(response, status);</span>
+
+	}
+
+	// metodo para validar si el servicio esta arriba
+	@GetMapping(&quot;/test&quot;)
+	private String saludar() {
+<span class="nc" id="L227">		log.info(&quot;Service clients is running!&quot;);</span>
+<span class="nc" id="L228">		return &quot;Hello! this service is Run&quot;;</span>
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

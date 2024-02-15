@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AppointmentServiceImpl.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">bk-lbda</a> &gt; <a href="index.source.html" class="el_package">com.grandapp.service.impl</a> &gt; <span class="el_source">AppointmentServiceImpl.java</span></div><h1>AppointmentServiceImpl.java</h1><pre class="source lang-java linenums">package com.grandapp.service.impl;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.stereotype.Service;
+
+import com.grandapp.dto.AppointmentDto;
+import com.grandapp.exceptions.OperationNotAllowedException;
+import com.grandapp.model.AppointmentModel;
+import com.grandapp.model.BarberModel;
+import com.grandapp.model.ClientModel;
+import com.grandapp.repository.AppointmentRepository;
+import com.grandapp.requestDto.AppointmentRequestDto;
+import com.grandapp.response.AppointmentResponseDto;
+import com.grandapp.service.AppointmentService;
+
+import lombok.extern.slf4j.Slf4j;
+
+
+@Service
+<span class="fc" id="L33">@Slf4j</span>
+<span class="fc" id="L34">public class AppointmentServiceImpl implements AppointmentService {</span>
+
+	@Autowired
+	private AppointmentRepository appointmentRepository;
+
+	@Autowired
+	private BarberServiceImpl barberService;
+
+	@Autowired
+	private ClientServiceImpl clientService;
+
+	@Override
+	public Optional&lt;AppointmentModel&gt; findById(Long id) {
+<span class="nc" id="L47">		return null;</span>
+		// appointmentRepository.findById(id);
+	}
+
+	@Override
+	public AppointmentModel save(AppointmentRequestDto appointment) throws Exception {
+
+<span class="nc bnc" id="L54" title="All 2 branches missed.">		if (validateSchedule(appointment)) {</span>
+<span class="nc" id="L55">			throw new Exception(&quot;Cita esta reservada&quot;);</span>
+		} else {
+<span class="nc" id="L57">			BarberModel barber = barberService.findById(appointment.getBarberId()).get();</span>
+
+<span class="nc" id="L59">			AppointmentModel data = new AppointmentModel();</span>
+	
+
+<span class="nc" id="L62">			ClientModel clientExist = clientService.existsByPhone(appointment.getClient().getPhone());</span>
+<span class="nc bnc" id="L63" title="All 2 branches missed.">			if (clientExist == null) {</span>
+<span class="nc" id="L64">				ClientModel clientSave = clientService.save(appointment.getClient());</span>
+<span class="nc" id="L65">				data.setClient(clientSave);</span>
+<span class="nc" id="L66">			} else {</span>
+<span class="nc" id="L67">				data.setClient(clientExist);</span>
+			}
+
+<span class="nc" id="L70">			data.setBarber(barber);</span>
+<span class="nc" id="L71">			data.setTimeStart(appointment.getTimeStart());</span>
+//		data.setTimeEnd(appointment.getTimeStart());
+<span class="nc" id="L73">			return appointmentRepository.save(data);</span>
+
+		}
+
+	}
+
+	@Override
+	public AppointmentModel update(AppointmentRequestDto appointment, Long id) throws Exception {
+
+<span class="nc" id="L82">		Optional&lt;AppointmentModel&gt; citaold = appointmentRepository.findById(id);</span>
+		
+<span class="nc bnc" id="L84" title="All 2 branches missed.">		if (citaold.get() != null) {</span>
+<span class="nc" id="L85">			AppointmentModel data = new AppointmentModel();</span>
+<span class="nc" id="L86">			data.setId(id);// seteamos el id que nos envian</span>
+			// validamos que el barbero exista
+<span class="nc" id="L88">			Optional&lt;BarberModel&gt; barber = barberService.findById(appointment.getBarberId());</span>
+<span class="nc" id="L89">			data.setBarber(barber.get());</span>
+
+			// se valida si el cliente existe o debemos crearlo
+<span class="nc" id="L92">			ClientModel clientExist = clientService.existsByPhone(appointment.getClient().getPhone());</span>
+<span class="nc bnc" id="L93" title="All 2 branches missed.">			if (clientExist == null) {// si el cliente no existe debemos llamar a Save para crearlo</span>
+<span class="nc" id="L94">				ClientModel clientSave = clientService.save(appointment.getClient());</span>
+<span class="nc" id="L95">				data.setClient(clientSave);</span>
+<span class="nc" id="L96">			} else {// si ya existe, simplemente lo cargamos al nuevo set para actualizar el</span>
+					// appointment
+<span class="nc" id="L98">				data.setClient(clientExist);</span>
+			}
+
+<span class="nc" id="L101">			data.setTimeStart(appointment.getTimeStart());</span>
+<span class="nc" id="L102">			return appointmentRepository.save(data);</span>
+
+		}else {
+<span class="nc" id="L105">			throw new Exception(&quot;no se pudo actualizar cita, no se encontro cita&quot;);</span>
+		}
+
+	}
+
+	/*
+	 * Metodo para Validar que no exista duplicidad en cita con Dia-hora y barbero
+	 * ir asignando
+	 */
+	private Boolean validateSchedule(AppointmentRequestDto appointment) {
+<span class="nc" id="L115">		List&lt;AppointmentModel&gt; appointmentList = listAppointmentsByBarberAndDate(appointment);</span>
+
+<span class="nc bnc" id="L117" title="All 2 branches missed.">		for (AppointmentModel appointmentBusy : appointmentList) {</span>
+<span class="nc bnc" id="L118" title="All 2 branches missed.">			if (appointment.getBarberId().equals(appointmentBusy.getBarber().getId())) {</span>
+<span class="nc bnc" id="L119" title="All 2 branches missed.">				if (appointment.getTimeStart().equals(appointmentBusy.getTimeStart())) {</span>
+
+<span class="nc" id="L121">					log.info(&quot;Agenda ya existe&quot;);</span>
+<span class="nc" id="L122">					return true;</span>
+
+				}
+			}
+<span class="nc" id="L126">		}</span>
+<span class="nc" id="L127">		return false;</span>
+
+	}
+
+	@Override
+	public Page&lt;AppointmentModel&gt; findAll(Pageable pageable) throws Exception {
+		// TODO Auto-generated method stub
+<span class="nc" id="L134">		return null;</span>
+	}
+
+	// Método para obtener citas de un barbero específico
+	@Override
+	public AppointmentResponseDto getAppointmentsByBarberId(AppointmentRequestDto appointment) throws Exception {
+		try {
+			
+<span class="nc" id="L142">			List&lt;AppointmentModel&gt; appointmentList = listAppointmentsByBarberAndDate(appointment);</span>
+
+<span class="nc" id="L144">			List&lt;AppointmentDto&gt; scheduleList = generateEmptySchedule(appointment.getTimeStart());</span>
+
+<span class="nc bnc" id="L146" title="All 2 branches missed.">			for (AppointmentDto appointmentNew : scheduleList) {</span>
+<span class="nc bnc" id="L147" title="All 2 branches missed.">				for (AppointmentModel appointmentBusy : appointmentList) {</span>
+<span class="nc bnc" id="L148" title="All 2 branches missed.">					if (appointmentNew.getTimeStart().equals(appointmentBusy.getTimeStart())) {</span>
+
+<span class="nc" id="L150">						appointmentNew.setClient(true);</span>
+					}
+<span class="nc" id="L152">				}  </span>
+<span class="nc" id="L153">			}</span>
+
+<span class="nc" id="L155">			AppointmentResponseDto schedule = new AppointmentResponseDto();</span>
+<span class="nc" id="L156">			schedule.setBarber(appointmentList.get(0).getBarber());</span>
+
+<span class="nc" id="L158">			schedule.setAvailabilitySchedule(scheduleList);</span>
+
+<span class="nc" id="L160">			return schedule;</span>
+<span class="nc" id="L161">		} catch (Exception e) {</span>
+<span class="nc" id="L162">			throw new Exception(&quot;error en metodo getAppointmentsByBarber - Barbero no existe&quot;);</span>
+		}
+	}
+
+	/*
+	 * Metodo para generar la lista con todas los turnos vacios para posteriormente
+	 * ir asignando
+	 */
+	private List&lt;AppointmentDto&gt; generateEmptySchedule(LocalDateTime appointment) {
+<span class="nc" id="L171">		LocalDateTime firstHour = appointment.withHour(9);</span>
+<span class="nc" id="L172">		return IntStream.range(0, 10).mapToObj(i -&gt; new AppointmentDto(firstHour.withHour(9 + i), null))</span>
+<span class="nc" id="L173">				.collect(Collectors.toList());</span>
+	}
+
+	/*
+	 * Metodo para traer la lista de agendamientos asignados
+	 * 
+	 */
+	private List&lt;AppointmentModel&gt; listAppointmentsByBarberAndDate(AppointmentRequestDto appointment) {
+
+<span class="nc" id="L182">		return appointmentRepository.getAppointmentsByBarberId(appointment.getBarberId(), appointment.getTimeStart());</span>
+	}
+
+	// Método para obtener citas de un Dia en especifico
+	@Override
+	public List&lt;AppointmentModel&gt; getAppointmentsByDate(String timeStart, Long barberId, Long clientId) throws Exception {
+		
+<span class="nc" id="L189">		Specification&lt;AppointmentModel&gt; customQuery = Specification.where(null);</span>
+				
+<span class="nc bnc" id="L191" title="All 2 branches missed.">		 if (timeStart != null) {</span>
+<span class="nc" id="L192">			 DateTimeFormatter formatter = DateTimeFormatter.ofPattern(&quot;yyyy-MM-dd&quot;);</span>
+<span class="nc" id="L193">			 LocalDate date = LocalDate.parse(timeStart, formatter);</span>
+			 
+<span class="nc" id="L195">			 customQuery = customQuery.and((root, query, builder) -&gt; builder.equal(</span>
+<span class="nc" id="L196">					 builder.function(&quot;date&quot;, LocalDate.class, root.get(&quot;timeStart&quot;)), date));</span>
+	        }
+
+<span class="nc bnc" id="L199" title="All 4 branches missed.">	        if (barberId != null &amp;&amp; barberId != 0  ) {</span>
+<span class="nc" id="L200">	        	customQuery = customQuery.and((root, query, builder) -&gt; builder.equal(root.get(&quot;barber&quot;),barberId ));</span>
+	        }
+
+<span class="nc bnc" id="L203" title="All 2 branches missed.">	        if (clientId != null) {</span>
+<span class="nc" id="L204">	        	customQuery = customQuery.and((root, query, builder) -&gt; builder.equal(root.get(&quot;client&quot;),clientId ));</span>
+	        }
+	        
+<span class="nc" id="L207">	        Sort sortByTimeStart = Sort.by(Sort.Direction.ASC, &quot;timeStart&quot;);</span>
+	        
+		try {
+<span class="nc" id="L210">			return appointmentRepository.findAll(customQuery, sortByTimeStart); </span>
+					//appointmentRepository.getAppointmentsByDate(timeStart);
+<span class="nc" id="L212">		} catch (Exception e) {</span>
+<span class="nc" id="L213">			throw new Exception(&quot;error en metodo getAppointmentsByDate&quot; + e.getMessage());</span>
+		}
+	}
+
+	@Override
+	public void deleteById(Long id) {
+
+		try {
+<span class="nc" id="L221">			appointmentRepository.deleteById(id);</span>
+<span class="nc" id="L222">		} catch (EmptyResultDataAccessException e) {</span>
+<span class="nc" id="L223">			throw new OperationNotAllowedException(&quot;No se encontro Appointment!&quot; + e);</span>
+<span class="nc" id="L224">		}</span>
+
+<span class="nc" id="L226">	}</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

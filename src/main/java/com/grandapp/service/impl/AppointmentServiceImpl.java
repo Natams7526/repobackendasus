@@ -28,6 +28,7 @@ import com.grandapp.service.AppointmentService;
 
 import lombok.extern.slf4j.Slf4j;
 
+
 @Service
 @Slf4j
 public class AppointmentServiceImpl implements AppointmentService {
@@ -148,12 +149,11 @@ public class AppointmentServiceImpl implements AppointmentService {
 
 						appointmentNew.setClient(true);
 					}
-				}
+				}  
 			}
 
 			AppointmentResponseDto schedule = new AppointmentResponseDto();
-			schedule.setBarber(appointmentList.isEmpty() ? barberService.findById(appointment.getBarberId()).get()
-					: appointmentList.get(0).getBarber());
+			schedule.setBarber(appointmentList.get(0).getBarber());
 
 			schedule.setAvailabilitySchedule(scheduleList);
 
@@ -183,36 +183,44 @@ public class AppointmentServiceImpl implements AppointmentService {
 	}
 
 	// Método para obtener citas de un Dia en especifico
-	@Override
-	public List<AppointmentModel> getAppointmentsByDate(String timeStart, Long barberId, Long clientId) throws Exception {
-		
-		Specification<AppointmentModel> customQuery = Specification.where(null);
+		@Override
+		public List<AppointmentModel> getAppointmentsByDate(String timeStart, Long barberId, String phone)
+				throws Exception {
+
+			Specification<AppointmentModel> customQuery = Specification.where(null);
+			
+			ClientModel clientExist = clientService.existsByPhone(phone);
+			
+			
+			if (timeStart != null) {
+				DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+				LocalDate date = LocalDate.parse(timeStart, formatter);
+				customQuery = customQuery.and((root, query, builder) -> clientExist != null
+		                ? builder.greaterThanOrEqualTo(builder.function("date", LocalDate.class, root.get("timeStart")), date)
+		                : builder.equal(builder.function("date", LocalDate.class, root.get("timeStart")), date));
+			}
+			if (barberId != null && barberId != 0) {
+				customQuery = customQuery.and((root, query, builder) -> builder.equal(root.get("barber"), barberId));
+			}
+
+			if (phone != null) {
 				
-		 if (timeStart != null) {
-			 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-			 LocalDate date = LocalDate.parse(timeStart, formatter);
-			 
-			 customQuery = customQuery.and((root, query, builder) -> builder.equal(
-					 builder.function("date", LocalDate.class, root.get("timeStart")), date));
-	        }
+				if (clientExist!= null) {
+					customQuery = customQuery
+							.and((root, query, builder) -> builder.equal(root.get("client"), clientExist.getId()));
+				}else {
+					throw new Exception("Error getAppointmentsByDate : Client does not exist" );
+				}
+			}
 
-	        if (barberId != null && barberId != 0  ) {
-	        	customQuery = customQuery.and((root, query, builder) -> builder.equal(root.get("barber"),barberId ));
-	        }
+			Sort sortByTimeStart = Sort.by(Sort.Direction.ASC, "timeStart");
 
-	        if (clientId != null) {
-	        	customQuery = customQuery.and((root, query, builder) -> builder.equal(root.get("client"),clientId ));
-	        }
-	        
-	        Sort sortByTimeStart = Sort.by(Sort.Direction.ASC, "timeStart");
-	        
-		try {
-			return appointmentRepository.findAll(customQuery, sortByTimeStart); 
-					//appointmentRepository.getAppointmentsByDate(timeStart);
-		} catch (Exception e) {
-			throw new Exception("error en metodo getAppointmentsByDate" + e.getMessage());
+			try {
+				return appointmentRepository.findAll(customQuery, sortByTimeStart);
+			} catch (Exception e) {
+				throw new Exception("error en metodo getAppointmentsByDate" + e.getMessage());
+			}
 		}
-	}
 
 	@Override
 	public void deleteById(Long id) {

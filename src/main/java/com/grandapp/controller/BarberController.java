@@ -32,9 +32,9 @@ public class BarberController {
 	private BarberService barberService;
 
 	/**
-	 * Metodo para crear Cliente
+	 * Metodo para crear Barbero 
 	 * 
-	 * @param BarberModel client - Es el objeto cliente
+	 * @param BarberModel client - Es el objeto barber
 	 * @return <BarberModel>
 	 */
 	@PostMapping
